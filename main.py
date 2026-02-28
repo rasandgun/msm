@@ -3,6 +3,7 @@ from gui import *
 def main():
     root = tk.Tk()
     app = TesterGUI(root)
+    
     root.mainloop()
 
 

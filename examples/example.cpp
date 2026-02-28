@@ -323,6 +323,7 @@ signed main() {
             continue;
         }
         auto [fc, sc] = operation(i1, j1, i2, j2);
+        cout << fc <<  " " << sc << endl; 
         if (fc == -1) {
             bonus1000 = false;
             continue;

@@ -19,38 +19,60 @@ def run_program(command, input_data="", timeout=1.0):
     except Exception as e:
         raise Exception(f"Error running program: {str(e)}")
     
+import subprocess
+import os
+
 def compile_program_return_command(filename):
     if not os.path.exists(filename):
-        raise Exception(f"File not found: {filename}")
-    
-    # Extract file parts properly
-    file_dir = os.path.dirname(filename)  # Directory path
-    file_fullname = os.path.basename(filename)  # Filename with extension
-    file_name = os.path.splitext(file_fullname)[0]  # Filename without extension
-    
-    extension = os.path.splitext(filename)[1][1:]  # Get extension without dot
-    
-    if extension == 'cpp':
-        executable_name = f"msm_{file_name}"
-        result = subprocess.run(
-            ["/usr/bin/g++", filename, "-o", executable_name], 
-            capture_output=True,
-            text=True
-        )
-        if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else result.stdout
-            raise Exception(f"C++ compilation failed:\n{error_msg}")
-        return [f"./{executable_name}"]
-    
-    elif extension == "java":
-        result = subprocess.run(["/usr/bin/javac", filename], capture_output=True, text=True)
-        if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else result.stdout
-            raise Exception(f"Java compilation failed:\n{error_msg}")
-        return ["java", file_name]  # Just the class name
-    
-    elif extension == "py":
+        raise Exception("File not found: " + filename)
+
+    dir_name = os.path.dirname(filename)
+    base = os.path.basename(filename)
+    name, ext = os.path.splitext(base)
+    ext = ext[1:]  # убираем точку
+
+    if ext == "cpp":
+        out = "./msm_" + name
+        res = subprocess.run(["/usr/bin/g++", filename, "-o", out], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("C++ compilation error:\n" + (res.stderr or res.stdout))
+        return [out]
+
+    elif ext == "java":
+        res = subprocess.run(["/usr/bin/javac", filename], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("Java compilation error:\n" + (res.stderr or res.stdout))
+        return ["java", name]
+
+    elif ext == "py":
         return ["python3", filename]
-    
+
+    elif ext in ("pas", "pp"):  # Free Pascal
+        out = "./msm_" + name
+        res = subprocess.run(["fpc", filename, "-o" + out], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("Pascal compilation error:\n" + (res.stderr or res.stdout))
+        return [out]
+
+    elif ext == "rs":  # Rust
+        out = "./msm_" + name
+        res = subprocess.run(["rustc", filename, "-o", out], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("Rust compilation error:\n" + (res.stderr or res.stdout))
+        return [out]
+
+    elif ext == "kt":  # Kotlin
+        res = subprocess.run(["kotlinc", filename, "-d", "."], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("Kotlin compilation error:\n" + (res.stderr or res.stdout))
+        return ["kotlin", name + "Kt"]  # соглашение: имя файла + Kt
+
+    elif ext == "d":  # D
+        out = "./msm_" + name
+        res = subprocess.run(["dmd", filename, "-of" + out], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise Exception("D compilation error:\n" + (res.stderr or res.stdout))
+        return [out]
+
     else:
-        raise Exception(f'Unknown extension: {extension}')
+        raise Exception("Unknown extension: " + ext)
