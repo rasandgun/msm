@@ -2,6 +2,7 @@ import subprocess
 import os
 def run_program(command, input_data="", timeout=1.0):
     try:
+        print(command)
         result = subprocess.run(
             command, 
             input=input_data, 
@@ -29,17 +30,18 @@ def compile_program_return_command(filename):
     dir_name = os.path.dirname(filename)
     base = os.path.basename(filename)
     name, ext = os.path.splitext(base)
-    ext = ext[1:]  # убираем точку
+    msm_dir = os.getcwd()
+    ext = ext[1:] 
 
     if ext == "cpp":
         out = "./msm_" + name
-        res = subprocess.run(["/usr/bin/g++", filename, "-o", out], capture_output=True, text=True)
+        res = subprocess.run(["g++", filename, "-o", out], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception("C++ compilation error:\n" + (res.stderr or res.stdout))
         return [out]
 
     elif ext == "java":
-        res = subprocess.run(["/usr/bin/javac", filename], capture_output=True, text=True)
+        res = subprocess.run(["javac", "-d" , msm_dir, filename], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception("Java compilation error:\n" + (res.stderr or res.stdout))
         return ["java", name]
@@ -47,27 +49,27 @@ def compile_program_return_command(filename):
     elif ext == "py":
         return ["python3", filename]
 
-    elif ext in ("pas", "pp"):  # Free Pascal
+    elif ext in ("pas", "pp"):
         out = "./msm_" + name
         res = subprocess.run(["fpc", filename, "-o" + out], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception("Pascal compilation error:\n" + (res.stderr or res.stdout))
         return [out]
 
-    elif ext == "rs":  # Rust
+    elif ext == "rs":
         out = "./msm_" + name
         res = subprocess.run(["rustc", filename, "-o", out], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception("Rust compilation error:\n" + (res.stderr or res.stdout))
         return [out]
 
-    elif ext == "kt":  # Kotlin
+    elif ext == "kt":
         res = subprocess.run(["kotlinc", filename, "-d", "."], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception("Kotlin compilation error:\n" + (res.stderr or res.stdout))
-        return ["kotlin", name + "Kt"]  # соглашение: имя файла + Kt
+        return ["kotlin", name + "Kt"]
 
-    elif ext == "d":  # D
+    elif ext == "d":
         out = "./msm_" + name
         res = subprocess.run(["dmd", filename, "-of" + out], capture_output=True, text=True)
         if res.returncode != 0:

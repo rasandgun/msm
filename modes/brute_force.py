@@ -2,15 +2,17 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 import runner
+import threading
 
 def equal_up_to_whitespace(a, b):
     return "".join(a.split()) == "".join(b.split())
 
 class BruteForceTester:
-    def __init__(self, solution_path, brute_path, generator_path):
+    def __init__(self, solution_path, brute_path, generator_path, stop_event=None):
         self.solution_cmd = runner.compile_program_return_command(solution_path)
         self.brute_cmd = runner.compile_program_return_command(brute_path)
         self.generator_cmd = runner.compile_program_return_command(generator_path)
+        self.stop_event = stop_event if stop_event else threading.Event()
 
     def generate_test(self):
         try:
@@ -22,8 +24,11 @@ class BruteForceTester:
         failed = []
         errors = []
         for i in range(num_tests):
+            if self.stop_event.is_set():
+                break
             if progress_callback:
                 progress_callback(i + 1, num_tests)
+
             try:
                 test = self.generate_test()
             except Exception as e:
@@ -42,7 +47,6 @@ class BruteForceTester:
 
             try:
                 bru = runner.run_program(self.brute_cmd, test)
-                print(bru)
             except Exception as e:
                 errors.append("Brute error on test " + str(i+1) + ":\n" + str(e) + "\nTest:\n" + test)
                 if stop_on_fail:
