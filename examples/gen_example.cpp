@@ -10,18 +10,15 @@ int main() {
     mt19937 gen(rd());
 
     // Диапазоны для параметров
-    uniform_int_distribution<> dist_n(2, 20);
-    uniform_int_distribution<> dist_m(2, 20);
-    uniform_int_distribution<> dist_k(1, 2);
-    uniform_int_distribution<> dist_q(5, 100);
+    uniform_int_distribution<> dist_n(4, 15);
+    uniform_int_distribution<> dist_m(4, 15);
+    uniform_int_distribution<> dist_k(3, 4);
+    uniform_int_distribution<> dist_q(3, 15);
 
     // Генерируем n, m, k, q с условием n + m > 4
     int n, m;
-    do {
-        n = dist_n(gen);
-        m = dist_m(gen);
-    } while (n + m <= 4); // нужно строго больше 4
-
+    n = dist_n(gen);
+    m = dist_m(gen);
     int k = dist_k(gen);
     int q = dist_q(gen);
 

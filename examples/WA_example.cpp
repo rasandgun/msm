@@ -48,6 +48,11 @@ inline bool to_be_deleted_hor(int i, int j) {
     return false;
 }
 
+inline bool to_be_deleted(int i, int j) {
+    if (a[i][j] == 0) return false;
+    return to_be_deleted_hor(i, j) || to_be_deleted_ver(i, j);
+}
+
 bool chain_iteration() {
     bool res = false;
     for (int j = 0; j < m; j++) {
@@ -91,10 +96,8 @@ void gravity() {
 }
 
 
-
-void special_effects(int i, int j, ll &sum) {
+void special_effects(int i, int j) {
     used[i][j] = true;
-    sum += a[i][j];
     if (se[i][j] == 0) return;
     switch (se[i][j])  {
     case 0:
@@ -102,40 +105,40 @@ void special_effects(int i, int j, ll &sum) {
         break;
     case 1:
         for (int z = 0; z < m; z++) {
-            if (!used[i][z]) {
+            if (!used[i][z] && a[i][z] != 0) {
                 deleted[i][z] = true;
-                special_effects(i, z, sum);
+                special_effects(i, z);
             }
         }
         break;
     case 2:
         for (int z = 0; z < n; z++) {
-            if (!used[z][j]) {
+            if (!used[z][j] && a[z][j] != 0) {
                 deleted[z][j] = true;
-                special_effects(z, j, sum);
+                special_effects(z, j);
             }
         }
         break;
     case 3:
         for (int z = 0; z < n; z++) {
-            if (!used[z][j]) {
+            if (!used[z][j] && a[z][j] != 0) {
                 deleted[z][j] = true;
-                special_effects(z, j, sum);
+                special_effects(z, j);
             }
         }
         for (int z = 0; z < m; z++) {
-            if (!used[i][z]) {
+            if (!used[i][z] && a[i][z] != 0) {
                 deleted[i][z] = true;
-                special_effects(i, z, sum);
+                special_effects(i, z);
             }
         }
         break;
     case 4:
         for (int k = max(0, i - 1); k <= min(n - 1, i + 1); k++)
             for (int z = max(0, j - 1); z <= min(m - 1, j + 1); z++) {
-                if (!used[k][z]) {
+                if (!used[k][z] && a[k][z] != 0) {
                     deleted[k][z] = true;
-                    special_effects(k, z, sum);
+                    special_effects(k, z);
                 }
             }
         break;
@@ -144,7 +147,7 @@ void special_effects(int i, int j, ll &sum) {
             for (int z = max(0, j - 2); z <= min(m - 1, j + 2); z++) {
                 if (!used[k][z]) {
                     deleted[k][z] = true;
-                    special_effects(k, z, sum);
+                    special_effects(k, z);
                 }
             }
         break;
@@ -153,7 +156,7 @@ void special_effects(int i, int j, ll &sum) {
             for (int z = 0; z < m; z++) {
                 if (a[k][z] == a[i][j] && !used[k][z]) {
                     deleted[k][z] = true;
-                    special_effects(k, z, sum);
+                    special_effects(k, z);
                 }
             }
         }
@@ -163,13 +166,18 @@ void special_effects(int i, int j, ll &sum) {
     }
 }
 
-void apply_deleted() {
+int apply_deleted() {
+    int res = 0;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            if (deleted[i][j])
+            if (deleted[i][j]) {
+                res += a[i][j];
                 a[i][j] = 0;
+                se[i][j] = 0;
+            }
         }
     }
+    return res;
 }
 
 void print(int arr[][MAXN]) {
@@ -200,39 +208,22 @@ vector<operation_result> poker_colors;
 
 operation_result operation(int i1, int j1, int i2, int j2) {
     operation_result res;
+    if (a[i1][j1] == 0 || a[i2][j2] == 0) return {-1, -1};
     swap(a[i1][j1], a[i2][j2]);
     swap(se[i1][j1], se[i2][j2]);
-    if (j1 == j2) {
-        if (to_be_deleted_ver(i1, j1)) {
-            res.first_col = a[i1][j1];
-            if (to_be_deleted_ver(i2, j2))
-                res.second_col = a[i2][j2];
-            else
-                res.second_col = a[i1][j1];
-        } else {
-            if (to_be_deleted_ver(i2, j2))
-                res.second_col = res.first_col = a[i2][j2];
-            else {
-                swap(a[i1][j1], a[i2][j2]);
-                swap(se[i1][j1], se[i2][j2]);
-                return {-1, -1};
-            }
-        }
+    if (to_be_deleted(i1, j1)) {
+        res.first_col = a[i1][j1];
+        if (to_be_deleted(i2, j2))
+            res.second_col = a[i2][j2];
+        else
+            res.second_col = a[i1][j1];
     } else {
-        if (to_be_deleted_hor(i1, j1)) {
-            res.first_col = a[i1][j1];
-            if (to_be_deleted_hor(i2, j2))
-                res.second_col = a[i2][j2];
-            else
-                res.second_col = a[i1][j1];
-        } else {
-            if (to_be_deleted_hor(i2, j2))
-                res.second_col = res.first_col = a[i2][j2];
-            else {
-                swap(a[i1][j1], a[i2][j2]);
-                swap(se[i1][j1], se[i2][j2]);
-                return {-1, -1};
-            }
+        if (to_be_deleted(i2, j2))
+            res.first_col = res.second_col = a[i2][j2];
+        else {
+            swap(a[i1][j1], a[i2][j2]);
+            swap(se[i1][j1], se[i2][j2]);
+            return {-1, -1};
         }
     }
     int iteraion = 1;
@@ -245,18 +236,17 @@ operation_result operation(int i1, int j1, int i2, int j2) {
         }
         for (int i = 0; i < n; i++)
             fill(used[i], used[i] + m, false);
-        ll sum = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
-                if (!used[i][j] && deleted[i][j]) {
-                    special_effects(i, j, sum);
+                if (!used[i][j] && deleted[i][j] && a[i][j] != 0) {
+                    special_effects(i, j);
                 }
             }
         }
-        ans += sum * iteraion;
         for (int i = 0; i < n; i++)
             fill(used[i], used[i] + m, false);
-        apply_deleted();
+        int x = apply_deleted();
+        ans += iteraion * 1ll * x;
         gravity();
         iteraion++;
         for (int i = 0; i < n; i++)
@@ -304,7 +294,9 @@ int poker(int mask) {
 }
 
 
-int main() {
+
+
+signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(nullptr);
     int k, q;
@@ -319,17 +311,16 @@ int main() {
         int i1, j1, i2, j2;
         cin >> i1 >> j1 >> i2 >> j2;;
         i1--, j1--, i2--, j2--;
-        if (i1 != i2 && j1 != j2) {
+        if (abs(i2 - i1) + abs(j2 - j1) != 1) {
             bonus1000 = false;
             continue;
         }
         auto [fc, sc] = operation(i1, j1, i2, j2);
+        cout << fc <<  " " << sc << endl; 
         if (fc == -1) {
             bonus1000 = false;
             continue;
         }
-        if (poker_colors.size() == 5)
-            poker_colors.erase(poker_colors.begin());
         poker_colors.push_back({fc, sc});
         bool poker_check = poker_colors.size() >= 5;
         for (int i = 0; i < poker_colors.size(); i++) {
@@ -344,6 +335,7 @@ int main() {
                     mx = xxx;
                 }
             }
+            poker_colors.clear();
             ans += mx;
         }
     }

@@ -1,0 +1,10 @@
+{
+    "solution": "/home/vrp/msm/examples/interactive_solution_WA.cpp",
+    "brute": "/home/vrp/msm/examples/interactor.cpp",
+    "generator": "/home/vrp/msm/examples/gen_example.cpp",
+    "mode": "Interactive",
+    "num_tests": 100,
+    "stop_on_fail": true,
+    "timeout": 6,
+    "theme": "dark"
+}
