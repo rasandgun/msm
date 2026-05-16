@@ -8,7 +8,7 @@ DEFAULT_CONFIG = {
     "solution": "",
     "brute": "",
     "generator": "",
-    "mode": "Brute Force",   # или "Interactive"
+    "mode": "Brute Force",
     "num_tests": 100,
     "stop_on_fail": True,
     "timeout": 2.0,

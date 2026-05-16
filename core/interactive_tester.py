@@ -14,30 +14,33 @@ class InteractiveTester:
 
     def stop(self):
         self._should_stop = True
-
     def run_single_test(self, seed: int) -> Tuple[bool, str]:
+        p_sol = None
+        p_int = None
+        t1 = t2 = None
+        
         try:
             p_sol = subprocess.Popen(
                 self.solution_cmd,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1  # Строчная буферизация
             )
             p_int = subprocess.Popen(
                 self.interactor_cmd + [str(seed)],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1
             )
         except Exception as e:
             return False, f"Failed to start processes: {e}"
 
-        sol_stdout = []
-        int_stdout = []
         stop_forwarding = threading.Event()
-
+        
         def forward(src, dst, name):
             try:
                 for line in iter(src.readline, ""):
@@ -45,7 +48,7 @@ class InteractiveTester:
                         break
                     dst.write(line)
                     dst.flush()
-            except BrokenPipeError:
+            except (BrokenPipeError, OSError):
                 pass
             finally:
                 try:
@@ -55,37 +58,59 @@ class InteractiveTester:
 
         t1 = threading.Thread(target=forward, args=(p_sol.stdout, p_int.stdin, "sol->int"))
         t2 = threading.Thread(target=forward, args=(p_int.stdout, p_sol.stdin, "int->sol"))
-        t1.daemon = True; t2.daemon = True
-        t1.start(); t2.start()
+        t1.daemon = True
+        t2.daemon = True
+        t1.start()
+        t2.start()
 
         start = time.time()
+        timed_out = False
+        
         while time.time() - start < self.timeout:
             if self._should_stop:
+                timed_out = True
                 break
+                
             if p_sol.poll() is not None and p_int.poll() is not None:
                 break
-            time.sleep(0.05)
+                
+            time.sleep(0.01)
 
-        timed_out = False
+        if self._should_stop:
+            timed_out = True
+        
         if p_sol.poll() is None:
-            p_sol.terminate(); timed_out = True
+            p_sol.terminate()
+            p_sol.wait(timeout=0.5)
+            if p_sol.poll() is None:
+                p_sol.kill()
+                p_sol.wait()
+            timed_out = True
+            
         if p_int.poll() is None:
-            p_int.terminate(); timed_out = True
+            p_int.terminate()
+            p_int.wait(timeout=0.5)
+            if p_int.poll() is None:
+                p_int.kill()
+                p_int.wait()
+            timed_out = True
 
         stop_forwarding.set()
-        t1.join(timeout=1); t2.join(timeout=1)
+        t1.join(timeout=0.5)
+        t2.join(timeout=0.5)
 
-        sol_ret = p_sol.returncode
-        int_ret = p_int.returncode
-        ok = (int_ret == 0) and not timed_out
+        ok = (p_int.returncode == 0) and not timed_out and not self._should_stop
 
         if not ok:
             msg = f"Seed {seed}: "
+            if self._should_stop:
+                msg += "stopped by user; "
             if timed_out:
                 msg += "timeout; "
-            if int_ret != 0:
-                msg += f"interactor exit code {int_ret}; "
+            if p_int.returncode != 0:
+                msg += f"interactor exit code {p_int.returncode}; "
             return False, msg
+            
         return True, f"Seed {seed}: OK"
 
     def run_tests(self, num_tests: int, stop_on_fail: bool,
@@ -113,4 +138,18 @@ class InteractiveTester:
         return failed, errors
 
     def cleanup(self):
-        pass
+        import os
+        for cmd in [self.solution_cmd, self.interactor_cmd]:
+            if not cmd:
+                continue
+                
+            exe = cmd[0]
+            filename = os.path.basename(exe)
+            
+            if filename.startswith('msm_') or filename.startswith('tmp_'):
+                try:
+                    if os.path.exists(exe):
+                        os.remove(exe)
+                        print(f"  Removed: {exe}")
+                except OSError as e:
+                    print(f"  Failed to remove {exe}: {e}")

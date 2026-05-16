@@ -14,6 +14,10 @@ class BruteForceTester:
         self.generator_cmd = compile_program(generator_path)
         self.timeout = timeout
         self._should_stop = False
+    
+    def __del__(self):
+        print("Destructor")
+        self.cleanup()
 
     def stop(self):
         self._should_stop = True
@@ -62,13 +66,25 @@ class BruteForceTester:
                 progress_callback(i + 1, num_tests)
 
         return failed_tests, errors
-
+    
     def cleanup(self):
-        """Удаляет скомпилированные файлы, если нужно."""
+        """Удаляет скомпилированные временные файлы."""
+        import os
+        import glob
+        
         for cmd in [self.solution_cmd, self.brute_cmd, self.generator_cmd]:
+            if not cmd:
+                continue
             exe = cmd[0]
-            if exe.startswith("./msm_"):
+            filename = os.path.basename(exe)
+            if filename.startswith('msm_') or filename.startswith('tmp_'):
                 try:
-                    os.remove(exe[2:])
-                except OSError:
-                    pass
+                    if os.path.exists(exe):
+                        os.remove(exe)
+                        print(f"  Removed: {exe}")
+                    else:
+                        print(f"  File not found: {exe}")
+                except OSError as e:
+                    print(f"  Failed to remove {exe}: {e}")
+            else:
+                print(f"  Skipping (not temp file): {filename}")

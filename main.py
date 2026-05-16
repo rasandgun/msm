@@ -19,7 +19,7 @@ def main():
     window = MainWindow()
     window.show()
     print("Window shown")
-    sys.exit(app.exec_())
+    app.exec_()
 
 if __name__ == "__main__":
     main()

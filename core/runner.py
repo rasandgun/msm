@@ -14,7 +14,7 @@ LANGUAGE_COMMANDS = {
     "rb":    (None, None, ["ruby", "{src}"]),
 }
 
-def compile_program(src_path: str, work_dir: Optional[str] = None) -> List[str]:
+def compile_program(src_path: str, work_dir: Optional[str] = None) -> list[str]:
     if not os.path.exists(src_path):
         raise FileNotFoundError(f"File not found: {src_path}")
     ext = os.path.splitext(src_path)[1][1:].lower()
@@ -33,7 +33,7 @@ def compile_program(src_path: str, work_dir: Optional[str] = None) -> List[str]:
     else:
         return [run_template.format(src=src_path, out=out_path, dir=os.path.dirname(src_path), name=name)]
 
-def run_program(cmd: List[str], input_data: str = "", timeout: float = 5.0) -> subprocess.CompletedProcess:
+def run_program(cmd: list[str], input_data: str = "", timeout: float = 5.0) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(cmd, input=input_data, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:

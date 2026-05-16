@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
         self.load_config_to_ui()
         set_style(self, self.config.get("theme", "light"))
-
+    
     def init_ui(self):
         self.setWindowTitle("Stress Tester Pro")
         self.setMinimumSize(900, 700)
