@@ -68,7 +68,6 @@ class BruteForceTester:
         return failed_tests, errors
     
     def cleanup(self):
-        """Удаляет скомпилированные временные файлы."""
         import os
         import glob
         

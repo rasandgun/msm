@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import os
 from typing import List, Optional
@@ -14,24 +15,37 @@ LANGUAGE_COMMANDS = {
     "rb":    (None, None, ["ruby", "{src}"]),
 }
 
+def get_executable_suffix():
+    return ".exe" if platform.system() == "Windows" else ""
+
 def compile_program(src_path: str, work_dir: Optional[str] = None) -> list[str]:
     if not os.path.exists(src_path):
         raise FileNotFoundError(f"File not found: {src_path}")
+    
     ext = os.path.splitext(src_path)[1][1:].lower()
     if ext not in LANGUAGE_COMMANDS:
         raise ValueError(f"Unsupported extension: .{ext}")
+    
     compiler, comp_args_template, run_template = LANGUAGE_COMMANDS[ext]
     name = os.path.splitext(os.path.basename(src_path))[0]
-    out_path = os.path.join(work_dir or os.path.dirname(src_path), f"msm_{name}")
+    suffix = get_executable_suffix()
+    out_path = os.path.join(work_dir or os.path.dirname(src_path), f"msm_{name}{suffix}")
+    
     if compiler:
-        comp_args = [arg.format(src=src_path, out=out_path, dir=os.path.dirname(src_path), name=name) for arg in comp_args_template]
+        comp_args = [arg.format(src=src_path, out=out_path, 
+                               dir=os.path.dirname(src_path), name=name) 
+                    for arg in comp_args_template]
         res = subprocess.run([compiler] + comp_args, capture_output=True, text=True)
         if res.returncode != 0:
             raise RuntimeError(f"Compilation error:\n{res.stderr or res.stdout}")
+    
     if isinstance(run_template, list):
-        return [arg.format(src=src_path, out=out_path, dir=os.path.dirname(src_path), name=name) for arg in run_template]
+        return [arg.format(src=src_path, out=out_path, 
+                          dir=os.path.dirname(src_path), name=name) 
+                for arg in run_template]
     else:
-        return [run_template.format(src=src_path, out=out_path, dir=os.path.dirname(src_path), name=name)]
+        return [run_template.format(src=src_path, out=out_path,
+                                   dir=os.path.dirname(src_path), name=name)]
 
 def run_program(cmd: list[str], input_data: str = "", timeout: float = 5.0) -> subprocess.CompletedProcess:
     try:

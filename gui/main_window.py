@@ -24,12 +24,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Stress Tester Pro")
         self.setMinimumSize(900, 700)
 
-        # Центральный виджет
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
 
-        # Группа выбора файлов
         file_group = QGroupBox("Program Files")
         form = QFormLayout()
         self.solution_edit = QLineEdit()
@@ -51,7 +49,6 @@ class MainWindow(QMainWindow):
         file_group.setLayout(form)
         main_layout.addWidget(file_group)
 
-        # Группа параметров
         param_group = QGroupBox("Test Parameters")
         param_layout = QVBoxLayout()
         top_params = QHBoxLayout()
@@ -78,7 +75,6 @@ class MainWindow(QMainWindow):
         param_group.setLayout(param_layout)
         main_layout.addWidget(param_group)
 
-        # Прогресс и кнопки
         progress_layout = QHBoxLayout()
         self.progress_bar = QProgressBar()
         progress_layout.addWidget(self.progress_bar)
@@ -98,7 +94,6 @@ class MainWindow(QMainWindow):
         progress_layout.addLayout(btn_layout)
         main_layout.addLayout(progress_layout)
 
-        # Вкладки с результатами
         self.tabs = QTabWidget()
         self.console_text = QTextEdit()
         self.console_text.setReadOnly(True)
@@ -112,12 +107,10 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.errors_text, "Errors")
         main_layout.addWidget(self.tabs)
 
-        # Статус бар
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Ready")
 
-        # Меню и тулбар
         self.create_menu_toolbar()
 
     def create_menu_toolbar(self):

@@ -5,12 +5,11 @@ from PyQt5.QtCore import Qt
 def set_style(main_window, theme: str):
     app = QApplication.instance()
     if theme == "dark":
-        # Включаем Fusion для предсказуемой отрисовки
         app.setStyle("Fusion")
         dark_palette = create_dark_palette()
         app.setPalette(dark_palette)
         app.setStyleSheet(DARK_QSS)
-    else:  # light
+    else:
         app.setStyle("Fusion")
         light_palette = create_light_palette()
         app.setPalette(light_palette)
@@ -18,7 +17,6 @@ def set_style(main_window, theme: str):
 
 def create_dark_palette():
     palette = QPalette()
-    # Основные цвета
     palette.setColor(QPalette.Window, QColor(45, 45, 45))
     palette.setColor(QPalette.WindowText, QColor(208, 208, 208))
     palette.setColor(QPalette.Base, QColor(35, 35, 35))
@@ -32,7 +30,6 @@ def create_dark_palette():
     palette.setColor(QPalette.Link, QColor(42, 130, 218))
     palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
     palette.setColor(QPalette.HighlightedText, Qt.black)
-    # Отключенные состояния
     palette.setColor(QPalette.Disabled, QPalette.WindowText, QColor(128, 128, 128))
     palette.setColor(QPalette.Disabled, QPalette.Text, QColor(128, 128, 128))
     palette.setColor(QPalette.Disabled, QPalette.ButtonText, QColor(128, 128, 128))
@@ -61,7 +58,6 @@ def create_light_palette():
     return palette
 
 DARK_QSS = """
-/* Тёмная тема – расширенный QSS */
 QMainWindow { background-color: #2d2d2d; }
 QMenuBar { background-color: #2d2d2d; color: #d0d0d0; }
 QMenuBar::item:selected { background-color: #3a3a3a; }
