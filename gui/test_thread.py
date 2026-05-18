@@ -24,19 +24,26 @@ class TestRunnerThread(QThread):
     def run(self):
         self._tester = None
         try:
+            self.log.emit("  Creating tester...")
             if self.mode == "Brute Force":
                 self.log.emit("Compiling programs...")
                 self._tester = BruteForceTester(self.sol, self.brute, self.gen, self.timeout)
             else:
                 self.log.emit("Compiling solution and interactor...")
                 self._tester = InteractiveTester(self.sol, self.brute, self.timeout)
-            print("COMPLETED")
-            self.log.emit("COMPLETED!")
+            
+            self.log.emit(f"  Tester created: {type(self._tester).__name__}")
+            self.log.emit("  Running tests... ")
+            
             failed, errors = self._tester.run_tests(
                 self.num_tests, self.stop_on_fail,
                 progress_callback=lambda cur, total: self.progress.emit(cur, total)
             )
-            
+            self.log.emit("  Testing finished ")
+            if failed:
+                self.log.emit("There are some failed tests")
+            if errors:
+                self.log.emit("There are some tests that produced errors")
             for fail_msg in failed:
                 self.failed.emit(fail_msg)
             for error_msg in errors:
