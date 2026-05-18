@@ -1,4 +1,5 @@
 import os
+
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QSpinBox, QCheckBox,
@@ -27,7 +28,6 @@ class MainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
-
         file_group = QGroupBox("Program Files")
         form = QFormLayout()
         self.solution_edit = QLineEdit()

@@ -26,7 +26,7 @@ class InteractiveTester:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1  # Строчная буферизация
+                bufsize=1  
             )
             p_int = subprocess.Popen(
                 self.interactor_cmd + [str(seed)],

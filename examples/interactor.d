@@ -5,8 +5,6 @@ import std.c.stdlib;
 
 void main(string[] args) {
     ulong seed = args[1].to!ulong;
-    
-    // Используем стандартный C rand для совместимости
     srand(seed);
     
     int n = rand() % 100;
