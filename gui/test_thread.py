@@ -1,4 +1,3 @@
-
 from PyQt5.QtCore import QThread, pyqtSignal
 from core.brute_tester import BruteForceTester
 from core.interactive_tester import InteractiveTester
@@ -31,24 +30,17 @@ class TestRunnerThread(QThread):
             else:
                 self.log.emit("Compiling solution and interactor...")
                 self._tester = InteractiveTester(self.sol, self.brute, self.timeout)
-            
+            print("COMPLETED")
+            self.log.emit("COMPLETED!")
             failed, errors = self._tester.run_tests(
                 self.num_tests, self.stop_on_fail,
                 progress_callback=lambda cur, total: self.progress.emit(cur, total)
             )
             
-            
-            print(f"DEBUG: failed count = {len(failed)}, errors count = {len(errors)}")
-            
-            
             for fail_msg in failed:
-                print(f"DEBUG: emitting failed: {fail_msg[:100]}...")
                 self.failed.emit(fail_msg)
-                
             for error_msg in errors:
-                print(f"DEBUG: emitting error: {error_msg[:100]}...")
                 self.error.emit(error_msg)
-                
             if not failed and not errors:
                 self.log.emit(f"All {self.num_tests} tests passed!")
                 

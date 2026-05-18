@@ -1,10 +1,10 @@
 {
-    "solution": "/home/vrp/msm/examples/error_example.cpp",
+    "solution": "/home/vrp/msm/examples/example.cpp",
     "brute": "/home/vrp/msm/examples/WA_example.cpp",
     "generator": "/home/vrp/msm/examples/gen_example.cpp",
     "mode": "Brute Force",
-    "num_tests": 100,
+    "num_tests": 50,
     "stop_on_fail": true,
-    "timeout": 2,
+    "timeout": 3,
     "theme": "light"
 }
