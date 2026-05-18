@@ -1,10 +1,10 @@
 {
-    "solution": "/home/vrp/msm/examples/error_example.cpp",
-    "brute": "/home/vrp/msm/examples/error_example.cpp",
-    "generator": "/home/vrp/msm/examples/gen_example.cpp",
-    "mode": "Brute Force",
+    "solution": "/home/vrp/msm/examples/interactive_solution_WA.cpp",
+    "brute": "/home/vrp/msm/examples/interactor.cpp",
+    "generator": "/home/vrp/msm/examples/A_plus_B_gen.py",
+    "mode": "Interactive",
     "num_tests": 100,
-    "stop_on_fail": true,
-    "timeout": 6,
+    "stop_on_fail": false,
+    "timeout": 2,
     "theme": "dark"
 }
