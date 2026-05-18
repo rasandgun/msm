@@ -1,3 +1,4 @@
+
 from PyQt5.QtCore import QThread, pyqtSignal
 from core.brute_tester import BruteForceTester
 from core.interactive_tester import InteractiveTester
@@ -35,20 +36,37 @@ class TestRunnerThread(QThread):
                 self.num_tests, self.stop_on_fail,
                 progress_callback=lambda cur, total: self.progress.emit(cur, total)
             )
+            
+            
+            print(f"DEBUG: failed count = {len(failed)}, errors count = {len(errors)}")
+            
+            
+            for fail_msg in failed:
+                print(f"DEBUG: emitting failed: {fail_msg[:100]}...")
+                self.failed.emit(fail_msg)
+                
+            for error_msg in errors:
+                print(f"DEBUG: emitting error: {error_msg[:100]}...")
+                self.error.emit(error_msg)
+                
+            if not failed and not errors:
+                self.log.emit(f"All {self.num_tests} tests passed!")
+                
         except Exception as e:
             import traceback
             traceback.print_exc()
-            self.error.emit(f"Fatal error: {str(e)}")
-            self.log.emit(f"Fatal error: {str(e)}")
+            error_msg = f"Fatal error: {str(e)}\n{traceback.format_exc()}"
+            self.error.emit(error_msg)
+            self.log.emit(error_msg)
         finally:
             if self._tester:
-                print(f"  Calling cleanup on {type(self._tester).__name__}")
+                print(f"Calling cleanup on {type(self._tester).__name__}")
                 try:
                     self._tester.cleanup()
                 except Exception as e:
-                    print(f"  Cleanup ERROR: {e}")
+                    print(f"Cleanup ERROR: {e}")
             else:
-                print("  WARNING: _tester is None, cleanup skipped!")
+                print("WARNING: _tester is None, cleanup skipped!")
             self.finished.emit()
 
     def stop(self):

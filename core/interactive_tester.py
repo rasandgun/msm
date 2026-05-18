@@ -14,7 +14,8 @@ class InteractiveTester:
 
     def stop(self):
         self._should_stop = True
-    def run_single_test(self, seed: int) -> Tuple[bool, str]:
+        
+    def run_single_test(self, seed: int) -> Tuple[bool, str, str]:
         p_sol = None
         p_int = None
         t1 = t2 = None
@@ -37,15 +38,18 @@ class InteractiveTester:
                 bufsize=1
             )
         except Exception as e:
-            return False, f"Failed to start processes: {e}"
+            return False, f"Failed to start processes: {e}", ""
 
         stop_forwarding = threading.Event()
+        sol_output = []
+        int_output = []
         
-        def forward(src, dst, name):
+        def forward_with_log(src, dst, log, name):
             try:
                 for line in iter(src.readline, ""):
                     if stop_forwarding.is_set() or self._should_stop:
                         break
+                    log.append(f"[{name}] {line.rstrip()}")
                     dst.write(line)
                     dst.flush()
             except (BrokenPipeError, OSError):
@@ -56,8 +60,8 @@ class InteractiveTester:
                 except:
                     pass
 
-        t1 = threading.Thread(target=forward, args=(p_sol.stdout, p_int.stdin, "sol->int"))
-        t2 = threading.Thread(target=forward, args=(p_int.stdout, p_sol.stdin, "int->sol"))
+        t1 = threading.Thread(target=forward_with_log, args=(p_sol.stdout, p_int.stdin, sol_output, "sol->int"))
+        t2 = threading.Thread(target=forward_with_log, args=(p_int.stdout, p_sol.stdin, int_output, "int->sol"))
         t1.daemon = True
         t2.daemon = True
         t1.start()
@@ -68,7 +72,6 @@ class InteractiveTester:
         
         while time.time() - start < self.timeout:
             if self._should_stop:
-                timed_out = True
                 break
                 
             if p_sol.poll() is not None and p_int.poll() is not None:
@@ -76,42 +79,52 @@ class InteractiveTester:
                 
             time.sleep(0.01)
 
+        
+        sol_stderr = ""
+        int_stderr = ""
+        
         if self._should_stop:
             timed_out = True
         
-        if p_sol.poll() is None:
-            p_sol.terminate()
-            p_sol.wait(timeout=0.5)
-            if p_sol.poll() is None:
-                p_sol.kill()
-                p_sol.wait()
-            timed_out = True
-            
-        if p_int.poll() is None:
-            p_int.terminate()
-            p_int.wait(timeout=0.5)
-            if p_int.poll() is None:
-                p_int.kill()
-                p_int.wait()
-            timed_out = True
+        
+        for proc, name in [(p_sol, "Solution"), (p_int, "Interactor")]:
+            if proc and proc.poll() is None:
+                proc.terminate()
+                proc.wait(timeout=0.5)
+                if proc.poll() is None:
+                    proc.kill()
+                    proc.wait()
+                if name == "Solution":
+                    sol_stderr = proc.stderr.read() if proc.stderr else ""
+                else:
+                    int_stderr = proc.stderr.read() if proc.stderr else ""
 
         stop_forwarding.set()
         t1.join(timeout=0.5)
         t2.join(timeout=0.5)
 
+        
         ok = (p_int.returncode == 0) and not timed_out and not self._should_stop
 
+        output = f"Seed {seed}:\n"
+        if sol_output:
+            output += "Communication log:\n" + "\n".join(sol_output[-10:]) + "\n"
         if not ok:
-            msg = f"Seed {seed}: "
+            output += "FAILED: "
             if self._should_stop:
-                msg += "stopped by user; "
+                output += "stopped by user; "
             if timed_out:
-                msg += "timeout; "
+                output += "timeout; "
             if p_int.returncode != 0:
-                msg += f"interactor exit code {p_int.returncode}; "
-            return False, msg
+                output += f"interactor exit code {p_int.returncode}; "
+            if int_stderr:
+                output += f"\nInteractor stderr:\n{int_stderr}"
+            if sol_stderr:
+                output += f"\nSolution stderr:\n{sol_stderr}"
+            return False, output, int_stderr
             
-        return True, f"Seed {seed}: OK"
+        output += "OK"
+        return True, output, ""
 
     def run_tests(self, num_tests: int, stop_on_fail: bool,
                   progress_callback: Callable[[int, int], None] = None) -> Tuple[List[str], List[str]]:
@@ -122,13 +135,15 @@ class InteractiveTester:
                 break
             seed = random.getrandbits(63)
             try:
-                success, info = self.run_single_test(seed)
+                success, info, error = self.run_single_test(seed)
                 if not success:
                     failed.append(info)
+                    errors.append(error if error else info)
                     if stop_on_fail:
                         break
             except Exception as e:
-                errors.append(f"Test {i+1} (seed {seed}) exception: {e}")
+                error_msg = f"Test {i+1} (seed {seed}) exception: {e}"
+                errors.append(error_msg)
                 if stop_on_fail:
                     break
 
@@ -142,14 +157,11 @@ class InteractiveTester:
         for cmd in [self.solution_cmd, self.interactor_cmd]:
             if not cmd:
                 continue
-                
             exe = cmd[0]
             filename = os.path.basename(exe)
-            
-            if filename.startswith('msm_') or filename.startswith('tmp_'):
+            if filename.startswith('msm_'):
                 try:
                     if os.path.exists(exe):
                         os.remove(exe)
-                        print(f"  Removed: {exe}")
-                except OSError as e:
-                    print(f"  Failed to remove {exe}: {e}")
+                except OSError:
+                    pass

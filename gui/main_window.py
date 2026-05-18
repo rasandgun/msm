@@ -1,3 +1,4 @@
+#main_window.py
 import os
 
 from PyQt5.QtWidgets import (
@@ -106,6 +107,8 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.failed_text, "Failed Tests")
         self.tabs.addTab(self.errors_text, "Errors")
         main_layout.addWidget(self.tabs)
+
+        
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)

@@ -1,21 +1,16 @@
 import std.stdio;
 import std.conv;
 import std.random;
-import std.c.stdlib;
-
+import std.string;
 void main(string[] args) {
     ulong seed = args[1].to!ulong;
-    srand(seed);
-    
-    int n = rand() % 100;
+    rndGen.seed(cast(uint)seed);
+    int n = uniform(0, 100);
     writeln(n);
-    
-    int x = rand() % (n + 1);
-    
+    stdout.flush;
+    int x = uniform(0, n + 1);
     while (true) {
-        int r;
-        readf("%d", &r);
-        
+        auto r = readln.strip.to!int;
         if (r < x)
             writeln(-1);
         else if (r == x) {
@@ -23,5 +18,6 @@ void main(string[] args) {
             return;
         } else
             writeln(1);
+        stdout.flush;
     }
 }

@@ -268,29 +268,7 @@ int poker(int mask) {
             colors[i] = poker_colors[i].second_col;
     }
     sort(colors, colors + 5, greater<int>());
-    if (colors[0] == colors[1] && colors[1] == colors[2] && colors[2] == colors[3] && colors[3] == colors[4])
-        return 1000 + colors[0] * 10;
-    if (colors[0] == colors[1] && colors[1] == colors[2] && colors[2] == colors[3])
-        return 750 + colors[0] * 5;
-    if (colors[1] == colors[2] && colors[2] == colors[3] && colors[3] == colors[4])
-        return 750 + colors[1] * 5;
-    if (colors[0] == colors[1] && colors[1] == colors[2] && colors[3] == colors[4])
-        return 500 + colors[0] * 3 + colors[3];
-    if (colors[0] == colors[1] && colors[2] == colors[3] && colors[3] == colors[4])
-        return 500 + colors[2] * 3 + colors[0];
-    if (colors[0] == colors[1] && colors[1] == colors[2])
-        return 300 + colors[0] * 3;
-    if (colors[1] == colors[2] && colors[2] == colors[3])
-        return 300 + colors[1] * 3;
-    if (colors[2] == colors[3] && colors[3] == colors[4])
-        return 300 + colors[2] * 3;
-    if (colors[0] == colors[1] && colors[2] == colors[3])
-        return 200 + colors[0] * 2 + colors[2];
-    if (colors[0] == colors[1] && colors[3] == colors[4])
-        return 200 + colors[0] * 2 + colors[3];
-    if (colors[1] == colors[2] && colors[3] == colors[4])
-        return 200 + colors[1] * 2 + colors[3];
-    return 50 + colors[0];
+    return 0;
 }
 
 
@@ -349,6 +327,5 @@ signed main() {
                 bonus10000 = false;
     if (bonus10000)
         ans += 10000;
-    cout << ans << "\n";
     return 0;
 }

@@ -9,7 +9,7 @@ import std.typecons;
 void main() {
     auto rng = Xorshift(cast(uint)Clock.currTime().nsecs);
     
-    // Исправлено: без tuple destructuring
+    
     auto params = generateParams(rng);
     int n = params[0];
     int m = params[1];
@@ -18,35 +18,35 @@ void main() {
     
     writefln("%d %d %d %d", n, m, k, q);
     
-    // Генерация и вывод матрицы a
+    
     auto a = generateMatrix(n, m, k, rng);
     foreach (row; a) {
         writeRow(row);
     }
     
-    // Матрица b (все нули)
+    
     foreach (i; 0..n) {
         writeZeroRow(m);
     }
     
-    // Генерация и вывод обменов
+    
     foreach (i; 0..q) {
         auto swap = generateSingleSwap(n, m, rng);
         writeSwap(swap);
     }
 }
 
-// Генерация параметров
+
 auto generateParams(ref Xorshift rng) {
     return tuple(
-        uniform!"[]"(4, 15, rng),  // n
-        uniform!"[]"(4, 15, rng),  // m
-        uniform!"[]"(3, 4, rng),   // k
-        uniform!"[]"(3, 15, rng)   // q
+        uniform!"[]"(4, 15, rng),  
+        uniform!"[]"(4, 15, rng),  
+        uniform!"[]"(3, 4, rng),   
+        uniform!"[]"(3, 15, rng)   
     );
 }
 
-// Генерация матрицы a
+
 auto generateMatrix(int n, int m, int k, ref Xorshift rng) {
     auto matrix = new int[][](n, m);
     foreach (i; 0..n) {
@@ -57,7 +57,7 @@ auto generateMatrix(int n, int m, int k, ref Xorshift rng) {
     return matrix;
 }
 
-// Вывод строки матрицы a
+
 void writeRow(int[] row) {
     foreach (i, val; row) {
         if (i > 0) write(' ');
@@ -66,7 +66,7 @@ void writeRow(int[] row) {
     writeln();
 }
 
-// Вывод строки нулей (матрица b)
+
 void writeZeroRow(int m) {
     foreach (j; 0..m) {
         if (j > 0) write(' ');
@@ -75,20 +75,20 @@ void writeZeroRow(int m) {
     writeln();
 }
 
-// Генерация одного корректного обмена
+
 auto generateSingleSwap(int n, int m, ref Xorshift rng) {
     while (true) {
         int x1 = uniform!"[]"(1, n, rng);
         int y1 = uniform!"[]"(1, m, rng);
         
-        // Случайное смещение по соседству (только одна из координат меняется)
+        
         int dx, dy;
         if (uniform(0, 2, rng) == 0) {
-            dx = uniform!"[]"(-1, 1, rng);  // -1 или 1
+            dx = uniform!"[]"(-1, 1, rng);  
             dy = 0;
         } else {
             dx = 0;
-            dy = uniform!"[]"(-1, 1, rng);  // -1 или 1
+            dy = uniform!"[]"(-1, 1, rng);  
         }
         
         int x2 = x1 + dx;
@@ -100,7 +100,7 @@ auto generateSingleSwap(int n, int m, ref Xorshift rng) {
     }
 }
 
-// Вывод обмена
+
 void writeSwap(Tuple!(int, int, int, int) swap) {
     writefln("%d %d %d %d", swap[0], swap[1], swap[2], swap[3]);
 }
